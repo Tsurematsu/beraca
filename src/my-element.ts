@@ -1,17 +1,36 @@
 import './index.css';
 import { LitElement, html, type TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import.meta.glob('./**/*.ts', { eager: true });
+
+// Breakpoint en px — ajusta según tu diseño
+const DESKTOP_BREAKPOINT = 1024;
 
 @customElement('my-element')
 export class MyElement extends LitElement {
-  @property()
-  name?: string = 'my-element';
+  @state()
+  private _isDesktop: boolean = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches;
+
+  private _mediaQuery: MediaQueryList = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
+
+  private _onBreakpointChange = (e: MediaQueryListEvent): void => {
+    this._isDesktop = e.matches;
+  };
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this._mediaQuery.addEventListener('change', this._onBreakpointChange);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._mediaQuery.removeEventListener('change', this._onBreakpointChange);
+  }
 
   render(): TemplateResult {
     return html`
-        <page-home></page-home>
-      `;
+      ${this._isDesktop ? html`<page-desktop></page-desktop>` : html`<page-home></page-home>`}
+    `;
   }
 }
 
